@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>博客管理后台</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+  <!-- ========== 登录页面 ========== -->
+  <div id="page-login" class="admin-page">
+    <div class="login-box">
+      <div class="login-logo">✍️</div>
+      <h1>博客管理后台</h1>
+      <p class="login-sub">请输入管理员密码</p>
+      <form onsubmit="doLogin(event)">
+        <input type="password" id="login-pwd" placeholder="密码" autocomplete="current-password" />
+        <button type="submit" class="btn-primary btn-full">登录</button>
+      </form>
+      <p id="login-err" class="err-msg"></p>
+      <p class="login-hint">首次使用？默认密码是 <strong>admin123</strong><br/>登录后请到设置里修改密码</p>
+    </div>
+  </div>
+
+  <!-- ========== 设置页面（首次使用） ========== -->
+  <div id="page-setup" class="admin-page" style="display:none">
+    <div class="login-box">
+      <div class="login-logo">⚙️</div>
+      <h1>初始设置</h1>
+      <p class="login-sub">只需要做一次，以后每次直接输密码就行</p>
+
+      <label class="field-label">GitHub 用户名</label>
+      <input type="text" id="setup-owner" placeholder="例如：15995836590" value="15995836590" />
+
+      <label class="field-label">仓库名称</label>
+      <input type="text" id="setup-repo" placeholder="例如：t-z" value="t-z" />
+
+      <label class="field-label">分支名称</label>
+      <input type="text" id="setup-branch" placeholder="分支名" value="claude/create-blog-website-Xr1lh" />
+
+      <label class="field-label">
+        GitHub Token
+        <a href="https://github.com/settings/tokens/new?scopes=repo&description=blog-admin" target="_blank" style="font-size:0.8rem;margin-left:8px;">怎么获取？点这里</a>
+      </label>
+      <input type="password" id="setup-token" placeholder="粘贴你的 GitHub Token" />
+
+      <label class="field-label">设置管理密码</label>
+      <input type="password" id="setup-pwd" placeholder="自定义密码（至少6位）" />
+
+      <button class="btn-primary btn-full" style="margin-top:16px;" onclick="doSetup()">完成设置，进入后台</button>
+      <p id="setup-err" class="err-msg"></p>
+    </div>
+  </div>
+
+  <!-- ========== 主后台界面 ========== -->
+  <div id="page-admin" class="admin-page" style="display:none">
+
+    <!-- 顶部导航 -->
+    <header class="admin-header">
+      <div class="admin-header-inner">
+        <span class="admin-logo">✍️ 博客后台</span>
+        <div class="admin-nav">
+          <button class="admin-tab active" onclick="showTab('posts', this)">文章管理</button>
+          <button class="admin-tab" onclick="showTab('settings', this)">设置</button>
+          <button class="admin-logout" onclick="doLogout()">退出</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 文章管理 -->
+    <div id="tab-posts" class="admin-content">
+      <div class="admin-toolbar">
+        <h2>文章列表</h2>
+        <button class="btn-primary" onclick="showEditor(null)">＋ 写新文章</button>
+      </div>
+      <div id="posts-list" class="admin-posts-list">
+        <p class="loading-text">加载中...</p>
+      </div>
+    </div>
+
+    <!-- 写文章 / 编辑文章 -->
+    <div id="tab-editor" class="admin-content" style="display:none">
+      <div class="admin-toolbar">
+        <button class="btn-back" onclick="showTab('posts', null)">← 返回列表</button>
+        <h2 id="editor-title">写新文章</h2>
+      </div>
+
+      <div class="editor-form">
+        <input type="hidden" id="edit-id" />
+
+        <label class="field-label">文章标题 *</label>
+        <input type="text" id="edit-title" placeholder="输入文章标题" />
+
+        <div class="editor-row">
+          <div>
+            <label class="field-label">分类</label>
+            <input type="text" id="edit-category" placeholder="例如：生活随笔" list="categories" />
+            <datalist id="categories"></datalist>
+          </div>
+          <div>
+            <label class="field-label">日期</label>
+            <input type="date" id="edit-date" />
+          </div>
+        </div>
+
+        <label class="field-label">摘要（显示在首页的简介）</label>
+        <textarea id="edit-excerpt" rows="2" placeholder="写一段简短的摘要..."></textarea>
+
+        <label class="field-label">
+          正文内容 *
+          <span class="field-hint">
+            支持简单格式：## 标题，> 引用，**粗体**
+          </span>
+        </label>
+        <textarea id="edit-content" rows="18" placeholder="在这里写文章正文...
+
+示例格式：
+## 这是一个小标题
+
+这是正文段落。
+
+> 这是一段引用
+
+**这是粗体文字**"></textarea>
+
+        <div class="editor-actions">
+          <button class="btn-secondary" onclick="previewPost()">👁 预览</button>
+          <button class="btn-primary" onclick="savePost()">
+            <span id="save-btn-text">🚀 发布文章</span>
+          </button>
+        </div>
+        <p id="save-msg" class="save-msg"></p>
+      </div>
+    </div>
+
+    <!-- 设置 -->
+    <div id="tab-settings" class="admin-content" style="display:none">
+      <h2>设置</h2>
+
+      <div class="settings-card">
+        <h3>GitHub 配置</h3>
+        <label class="field-label">GitHub 用户名</label>
+        <input type="text" id="cfg-owner" />
+        <label class="field-label">仓库名称</label>
+        <input type="text" id="cfg-repo" />
+        <label class="field-label">分支名称</label>
+        <input type="text" id="cfg-branch" />
+        <label class="field-label">GitHub Token</label>
+        <input type="password" id="cfg-token" placeholder="重新输入以修改" />
+        <button class="btn-primary" style="margin-top:12px;" onclick="saveConfig()">保存配置</button>
+      </div>
+
+      <div class="settings-card" style="margin-top:20px;">
+        <h3>修改密码</h3>
+        <label class="field-label">当前密码</label>
+        <input type="password" id="pwd-old" placeholder="当前密码" />
+        <label class="field-label">新密码（至少6位）</label>
+        <input type="password" id="pwd-new" placeholder="新密码" />
+        <label class="field-label">确认新密码</label>
+        <input type="password" id="pwd-confirm" placeholder="再输入一次" />
+        <button class="btn-primary" style="margin-top:12px;" onclick="changePwd()">修改密码</button>
+        <p id="pwd-msg" class="save-msg"></p>
+      </div>
+
+      <div class="settings-card danger-zone" style="margin-top:20px;">
+        <h3>⚠️ 危险操作</h3>
+        <p>清除所有本地设置（下次需要重新配置）</p>
+        <button class="btn-danger" onclick="clearAll()">清除所有设置</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 预览弹窗 -->
+  <div id="preview-modal" class="modal" style="display:none">
+    <div class="modal-inner">
+      <div class="modal-header">
+        <h3>文章预览</h3>
+        <button onclick="closePreview()">✕</button>
+      </div>
+      <div id="preview-content" class="preview-body post-content"></div>
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

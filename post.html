@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>加载中... - 我的博客</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="header">
+    <div class="container">
+      <div class="logo"><a href="index.html">✍️ 我的博客</a></div>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="about.html">关于我</a>
+      </nav>
+      <button class="theme-toggle" id="themeToggle" title="切换深色/浅色模式">🌙</button>
+    </div>
+  </header>
+
+  <div id="post-header" class="post-header">
+    <div class="container">
+      <h1 id="post-title">加载中...</h1>
+      <div class="post-header-meta" id="post-meta"></div>
+    </div>
+  </div>
+
+  <div class="post-content-wrap">
+    <article class="post-content" id="post-body">
+      <p style="color:var(--text-muted); text-align:center;">加载中...</p>
+    </article>
+
+    <div class="post-nav" id="post-nav"></div>
+
+    <div class="comment-section">
+      <h3>💬 留下你的评论</h3>
+      <form class="comment-form" onsubmit="submitComment(event)">
+        <input type="text" placeholder="你的名字" required />
+        <textarea placeholder="说说你的想法..." required></textarea>
+        <button type="submit">发表评论</button>
+      </form>
+      <div id="comments-list" style="margin-top:20px;"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 我的博客 · 用心记录每一天</p>
+      <p class="footer-links">
+        <a href="index.html">首页</a> ·
+        <a href="about.html">关于</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    const id = new URLSearchParams(location.search).get('id');
+    if (!id) location.href = 'index.html';
+
+    fetch('posts.json?t=' + Date.now())
+      .then(r => r.json())
+      .then(data => {
+        const posts = data.posts.sort((a, b) => b.id - a.id);
+        const idx = posts.findIndex(p => p.id === id);
+        if (idx === -1) { document.getElementById('post-body').innerHTML = '<p>文章不存在</p>'; return; }
+        const post = posts[idx];
+
+        document.title = post.title + ' - 我的博客';
+        document.getElementById('post-title').textContent = post.title;
+        document.getElementById('post-meta').innerHTML = `
+          <span>📅 ${formatDate(post.date)}</span>
+          <span>🏷️ ${post.category}</span>
+          <span>⏱️ 阅读约需 ${Math.max(1, Math.ceil(post.content.length / 300))} 分钟</span>
+        `;
+        document.getElementById('post-body').innerHTML = parseContent(post.content);
+
+        // 上下篇导航
+        const prev = posts[idx + 1];
+        const next = posts[idx - 1];
+        document.getElementById('post-nav').innerHTML = `
+          ${prev ? `<a href="post.html?id=${prev.id}">← ${prev.title}</a>` : '<span></span>'}
+          ${next ? `<a href="post.html?id=${next.id}" class="next">${next.title} →</a>` : '<span></span>'}
+        `;
+      })
+      .catch(() => {
+        document.getElementById('post-body').innerHTML = '<p>加载失败，请刷新重试</p>';
+      });
+
+    // 将纯文本内容转为 HTML
+    function parseContent(text) {
+      const lines = text.split('\n');
+      let html = '';
+      let i = 0;
+      while (i < lines.length) {
+        const line = lines[i].trim();
+        if (!line) { i++; continue; }
+        if (line.startsWith('## ')) {
+          html += `<h2>${esc(line.slice(3))}</h2>`;
+        } else if (line.startsWith('> ')) {
+          html += `<blockquote>${esc(line.slice(2))}</blockquote>`;
+        } else {
+          // 收集连续的普通行作为一个段落
+          let para = line;
+          while (i + 1 < lines.length && lines[i + 1].trim() &&
+                 !lines[i + 1].trim().startsWith('## ') &&
+                 !lines[i + 1].trim().startsWith('> ')) {
+            i++;
+            para += ' ' + lines[i].trim();
+          }
+          html += `<p>${esc(para)}</p>`;
+        }
+        i++;
+      }
+      return html;
+    }
+
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+               .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+               .replace(/_(.+?)_/g,'<em>$1</em>');
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-');
+      return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+    }
+
+    function submitComment(event) {
+      event.preventDefault();
+      const form = event.target;
+      const name = form.querySelector('input').value.trim();
+      const text = form.querySelector('textarea').value.trim();
+      if (!name || !text) return;
+      const list = document.getElementById('comments-list');
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:16px;background:var(--bg);border-radius:10px;margin-bottom:12px;border:1px solid var(--border);';
+      const now = new Date();
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <strong style="color:var(--primary);">😊 ${name}</strong>
+          <span style="font-size:0.8rem;color:var(--text-muted);">${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日</span>
+        </div>
+        <p style="color:var(--text-light);font-size:0.95rem;line-height:1.7;margin:0;">${text}</p>
+      `;
+      list.insertBefore(div, list.firstChild);
+      form.reset();
+    }
+  </script>
+</body>
+</html>
