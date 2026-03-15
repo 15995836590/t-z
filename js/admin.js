@@ -102,24 +102,22 @@ function showTab(name, btn) {
   if (name === 'settings') loadConfigToSettings();
 }
 
-// ---- 读取文章数据（从博客自身域名读取，无跨域问题）----
+// ---- 读取文章数据 ----
+// 用相对路径，不依赖任何配置，永远指向同目录下的 posts.json
 async function fetchPosts() {
-  const { owner, repo } = getConfig();
-  // 直接从 GitHub Pages 读取，稳定、无需认证、无跨域
-  const url = `https://${owner}.github.io/${repo}/posts.json?t=${Date.now()}`;
-  const res = await fetch(url);
+  const res = await fetch(`posts.json?t=${Date.now()}`);
   if (!res.ok) {
     if (res.status === 404) return { posts: [] };
-    throw new Error(`读取失败 HTTP ${res.status}`);
+    throw new Error(`读取文章失败（HTTP ${res.status}），请稍后重试`);
   }
   return res.json();
 }
 
-// ---- 获取文件 SHA（写入时必须，通过 GitHub API 获取）----
+// ---- 获取文件 SHA（写入时必须）----
 async function getFileSHA() {
   const { owner, repo, branch, token } = getConfig();
-  const encodedBranch = encodeURIComponent(branch);
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/posts.json?ref=${encodedBranch}`;
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/posts.json`
+            + `?ref=${encodeURIComponent(branch)}`;
   const res = await fetch(url, {
     headers: {
       'Authorization': `token ${token}`,
@@ -129,21 +127,31 @@ async function getFileSHA() {
   if (res.status === 404) return null;
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    throw new Error(err.message || `获取 SHA 失败 HTTP ${res.status}`);
   }
-  const data = await res.json();
-  return data.sha;
+  return (await res.json()).sha;
+}
+
+// ---- UTF-8 字符串转 base64（支持中文，避免大文件崩溃）----
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  // 用循环而非展开运算符，避免大文件时调用栈溢出
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
 }
 
 // ---- 写入文章数据 ----
 async function savePostsJson(postsData, message) {
   const { owner, repo, branch, token } = getConfig();
   const sha = await getFileSHA();
-  const jsonStr = JSON.stringify(postsData, null, 2);
-  // 正确编码 UTF-8 为 base64
-  const bytes = new TextEncoder().encode(jsonStr);
-  const base64 = btoa(String.fromCharCode(...bytes));
-  const body = { message, content: base64, branch };
+  const body = {
+    message,
+    content: utf8ToBase64(JSON.stringify(postsData, null, 2)),
+    branch,
+  };
   if (sha) body.sha = sha;
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/posts.json`;
   const res = await fetch(url, {
@@ -157,7 +165,7 @@ async function savePostsJson(postsData, message) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    throw new Error(err.message || `发布失败 HTTP ${res.status}`);
   }
 }
 
