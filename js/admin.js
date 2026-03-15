@@ -125,8 +125,9 @@ async function getFileSHA() {
   const encodedBranch = encodeURIComponent(branch);
   try {
     const data = await githubRequest('GET', `posts.json?ref=${encodedBranch}`);
-    const decoded = atob(data.content.replace(/\n/g, ''));
-    const json = JSON.parse(decodeURIComponent(escape(decoded)));
+    const base64 = data.content.replace(/\n/g, '');
+    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    const json = JSON.parse(new TextDecoder('utf-8').decode(bytes));
     return { sha: data.sha, content: json };
   } catch (err) {
     // 404 means file doesn't exist yet — OK for first publish
