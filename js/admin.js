@@ -120,19 +120,27 @@ async function githubRequest(method, path, body) {
 }
 
 async function getFileSHA() {
+  const { branch } = getConfig();
+  // URL-encode the branch name (handles slashes in branch names)
+  const encodedBranch = encodeURIComponent(branch);
   try {
-    const { branch } = getConfig();
-    const data = await githubRequest('GET', `posts.json?ref=${branch}`);
-    return { sha: data.sha, content: JSON.parse(atob(data.content.replace(/\n/g, ''))) };
-  } catch {
-    return { sha: null, content: { posts: [] } };
+    const data = await githubRequest('GET', `posts.json?ref=${encodedBranch}`);
+    const decoded = atob(data.content.replace(/\n/g, ''));
+    const json = JSON.parse(decodeURIComponent(escape(decoded)));
+    return { sha: data.sha, content: json };
+  } catch (err) {
+    // 404 means file doesn't exist yet — OK for first publish
+    if (err.message && err.message.includes('404')) {
+      return { sha: null, content: { posts: [] } };
+    }
+    throw err; // re-throw other errors (auth, network, etc.)
   }
 }
 
-async function savePostsJson(postsData, message) {
+async function savePostsJson(postsData, message, sha) {
   const { branch } = getConfig();
-  const { sha } = await getFileSHA();
-  const content = btoa(unescape(encodeURIComponent(JSON.stringify(postsData, null, 2))));
+  const jsonStr = JSON.stringify(postsData, null, 2);
+  const content = btoa(unescape(encodeURIComponent(jsonStr)));
   const body = { message, content, branch };
   if (sha) body.sha = sha;
   await githubRequest('PUT', 'posts.json', body);
@@ -229,7 +237,7 @@ async function savePost() {
   msgEl.textContent = '';
 
   try {
-    const { content: data } = await getFileSHA();
+    const { sha, content: data } = await getFileSHA();
     const posts = data.posts || [];
 
     if (id) {
@@ -250,7 +258,7 @@ async function savePost() {
       });
     }
 
-    await savePostsJson({ posts }, id ? `编辑文章: ${title}` : `发布文章: ${title}`);
+    await savePostsJson({ posts }, id ? `编辑文章: ${title}` : `发布文章: ${title}`, sha);
 
     msgEl.style.color = 'var(--primary)';
     msgEl.textContent = '✅ 发布成功！网站将在 1~2 分钟内更新';
@@ -268,9 +276,9 @@ async function savePost() {
 async function deletePost(id, title) {
   if (!confirm(`确定要删除文章《${title}》吗？\n\n删除后无法恢复！`)) return;
   try {
-    const { content: data } = await getFileSHA();
+    const { sha, content: data } = await getFileSHA();
     const posts = (data.posts || []).filter(p => p.id !== id);
-    await savePostsJson({ posts }, `删除文章: ${title}`);
+    await savePostsJson({ posts }, `删除文章: ${title}`, sha);
     loadPostsList();
   } catch (err) {
     alert('删除失败：' + err.message);
