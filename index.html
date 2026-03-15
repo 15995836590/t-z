@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的博客 - 记录生活，分享思考</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- 顶部导航栏 -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">✍️ 我的博客</a>
+      </div>
+      <nav class="nav">
+        <a href="index.html" class="active">首页</a>
+        <a href="about.html">关于我</a>
+      </nav>
+      <button class="theme-toggle" id="themeToggle" title="切换深色/浅色模式">🌙</button>
+    </div>
+  </header>
+
+  <!-- 英雄区域 -->
+  <section class="hero">
+    <div class="container">
+      <h1>欢迎来到我的博客</h1>
+      <p>记录生活点滴，分享所思所想，留住每一个美好的瞬间</p>
+    </div>
+  </section>
+
+  <!-- 主要内容区域 -->
+  <main class="main">
+    <div class="container layout">
+
+      <!-- 博客文章列表 -->
+      <section class="posts-section">
+        <h2 class="section-title">最新文章</h2>
+
+        <!-- 文章卡片 1 -->
+        <article class="post-card">
+          <div class="post-meta">
+            <span class="post-date">📅 2026年3月15日</span>
+            <span class="post-tag">生活随笔</span>
+          </div>
+          <h3 class="post-title">
+            <a href="post1.html">我为什么开始写博客？</a>
+          </h3>
+          <p class="post-excerpt">
+            一直想找个地方记录自己的想法和生活，今天终于下定决心开始写博客。
+            写博客不仅仅是分享，更是一种整理思路、认识自我的方式……
+          </p>
+          <a href="post1.html" class="read-more">阅读全文 →</a>
+        </article>
+
+        <!-- 文章卡片 2 -->
+        <article class="post-card">
+          <div class="post-meta">
+            <span class="post-date">📅 2026年3月10日</span>
+            <span class="post-tag">读书笔记</span>
+          </div>
+          <h3 class="post-title">
+            <a href="post2.html">《活着》读后感：在苦难中寻找意义</a>
+          </h3>
+          <p class="post-excerpt">
+            余华的《活着》是一部让人看完久久无法平静的小说。福贵的一生充满了苦难，
+            但他依然选择活下去。这部书让我重新思考了生命的意义……
+          </p>
+          <a href="post2.html" class="read-more">阅读全文 →</a>
+        </article>
+
+        <!-- 文章卡片 3 -->
+        <article class="post-card">
+          <div class="post-meta">
+            <span class="post-date">📅 2026年3月5日</span>
+            <span class="post-tag">旅行游记</span>
+          </div>
+          <h3 class="post-title">
+            <a href="post3.html">周末短途游：去了一个让人心旷神怡的地方</a>
+          </h3>
+          <p class="post-excerpt">
+            趁着周末天气不错，和朋友一起出去散了散心。
+            那个地方的风景真的太美了，让人忘记了平日里的烦恼……
+          </p>
+          <a href="post3.html" class="read-more">阅读全文 →</a>
+        </article>
+
+      </section>
+
+      <!-- 侧边栏 -->
+      <aside class="sidebar">
+
+        <!-- 搜索框 -->
+        <div class="widget">
+          <h3 class="widget-title">🔍 搜索</h3>
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索文章..." />
+            <button onclick="searchPosts()">搜索</button>
+          </div>
+        </div>
+
+        <!-- 关于博主 -->
+        <div class="widget">
+          <h3 class="widget-title">👤 关于博主</h3>
+          <div class="about-widget">
+            <div class="avatar">😊</div>
+            <p>你好！我是这个博客的作者。<br/>喜欢记录生活，分享想法。</p>
+            <a href="about.html" class="btn-outline">了解更多</a>
+          </div>
+        </div>
+
+        <!-- 文章分类 -->
+        <div class="widget">
+          <h3 class="widget-title">📂 文章分类</h3>
+          <ul class="category-list">
+            <li><a href="#">生活随笔 <span>1</span></a></li>
+            <li><a href="#">读书笔记 <span>1</span></a></li>
+            <li><a href="#">旅行游记 <span>1</span></a></li>
+          </ul>
+        </div>
+
+        <!-- 最新文章 -->
+        <div class="widget">
+          <h3 class="widget-title">🕐 最新文章</h3>
+          <ul class="recent-posts">
+            <li><a href="post1.html">我为什么开始写博客？</a></li>
+            <li><a href="post2.html">《活着》读后感</a></li>
+            <li><a href="post3.html">周末短途游</a></li>
+          </ul>
+        </div>
+
+      </aside>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 我的博客 · 用心记录每一天</p>
+      <p class="footer-links">
+        <a href="index.html">首页</a> ·
+        <a href="about.html">关于</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

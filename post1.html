@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我为什么开始写博客？ - 我的博客</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- 顶部导航栏 -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">✍️ 我的博客</a>
+      </div>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="about.html">关于我</a>
+      </nav>
+      <button class="theme-toggle" id="themeToggle" title="切换深色/浅色模式">🌙</button>
+    </div>
+  </header>
+
+  <!-- 文章头部 -->
+  <div class="post-header">
+    <div class="container">
+      <h1>我为什么开始写博客？</h1>
+      <div class="post-header-meta">
+        <span>📅 2026年3月15日</span>
+        <span>🏷️ 生活随笔</span>
+        <span>⏱️ 阅读约需 3 分钟</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 文章内容 -->
+  <div class="post-content-wrap">
+
+    <article class="post-content">
+
+      <p>
+        其实，开始写博客这个想法在我脑海里已经盘旋了很久了。
+        每次遇到一些有趣的事情、看完一本让我感触颇深的书、或者经历了某件让我思考很多的事情，
+        我都会想："要是能把这些记录下来就好了。"
+      </p>
+
+      <p>
+        但是每次都是三分钟热度——想想就算了，下次再说。
+        今天，我终于决定：不再等了，就从现在开始。
+      </p>
+
+      <h2>写博客，是为了和自己对话</h2>
+
+      <p>
+        我发现，很多时候我们脑子里的想法是模糊的、散乱的。
+        只有当你把它们用文字表达出来的时候，你才真正理解自己在想什么。
+        写作其实是一种思维整理的过程。
+      </p>
+
+      <p>
+        就像今天，我不确定自己为什么想开始写博客，
+        但当我坐下来真正开始写这篇文章的时候，答案慢慢变得清晰起来。
+      </p>
+
+      <blockquote>
+        "如果你无法简单地解释一件事，说明你还没有真正理解它。" —— 爱因斯坦
+      </blockquote>
+
+      <h2>写博客，是为了留住时间</h2>
+
+      <p>
+        记忆是会褪色的。那些当时觉得刻骨铭心的瞬间，过了几年回想起来，
+        往往只剩下一个模糊的轮廓。
+      </p>
+
+      <p>
+        我不想让那些美好的、有意义的时刻就这样悄悄溜走。
+        博客就像一个时光胶囊，把此刻的感受封存起来，等多年后打开，
+        还能清晰地感受到当年的心情。
+      </p>
+
+      <h2>写博客，是为了分享和连接</h2>
+
+      <p>
+        也许有一天，会有人读到这篇文章，感叹道："我也有同样的感受！"
+        这种在文字中找到共鸣的感觉，是一种很奇妙的连接。
+      </p>
+
+      <p>
+        不需要很多读者，哪怕只有一个人，在某个夜晚读到我写的东西，
+        觉得"这说出了我的心声"——这已经足够了。
+      </p>
+
+      <h2>写给未来的自己</h2>
+
+      <p>
+        最后，我想说，这个博客最重要的读者，其实是未来的我。
+        希望多年后回过头来，看到现在这个懵懂却充满热情的自己，
+        会觉得：还好，当初迈出了那一步。
+      </p>
+
+      <p>
+        那么，就这样开始吧。✨
+      </p>
+
+    </article>
+
+    <!-- 上下篇导航 -->
+    <div class="post-nav">
+      <span></span>
+      <a href="post2.html" class="next">下一篇：《活着》读后感 →</a>
+    </div>
+
+    <!-- 评论区 -->
+    <div class="comment-section">
+      <h3>💬 留下你的评论</h3>
+      <form class="comment-form" onsubmit="submitComment(event)">
+        <input type="text" placeholder="你的名字" required />
+        <textarea placeholder="说说你的想法..." required></textarea>
+        <button type="submit">发表评论</button>
+      </form>
+      <div id="comments-list" style="margin-top: 20px;"></div>
+    </div>
+
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 我的博客 · 用心记录每一天</p>
+      <p class="footer-links">
+        <a href="index.html">首页</a> ·
+        <a href="about.html">关于</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
