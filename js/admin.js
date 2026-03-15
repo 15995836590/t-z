@@ -102,49 +102,63 @@ function showTab(name, btn) {
   if (name === 'settings') loadConfigToSettings();
 }
 
-// ---- GitHub API 调用 ----
-async function githubRequest(method, path, body) {
-  const { owner, repo, token } = getConfig();
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-  const headers = {
-    'Authorization': `token ${token}`,
-    'Content-Type': 'application/json',
-    'Accept': 'application/vnd.github.v3+json',
-  };
-  const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
+// ---- 读取文章数据（直接从公开 URL 获取，无需解码）----
+async function fetchPosts() {
+  const { owner, repo, branch } = getConfig();
+  // 使用 raw 内容 URL，直接返回 JSON，无需 base64 解码
+  const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/posts.json?t=${Date.now()}`;
+  const res = await fetch(url);
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    if (res.status === 404) return { posts: [] };
+    throw new Error(`读取失败 HTTP ${res.status}`);
   }
   return res.json();
 }
 
+// ---- 获取文件 SHA（写入时必须，通过 GitHub API 获取）----
 async function getFileSHA() {
-  const { branch } = getConfig();
-  // URL-encode the branch name (handles slashes in branch names)
+  const { owner, repo, branch, token } = getConfig();
   const encodedBranch = encodeURIComponent(branch);
-  try {
-    const data = await githubRequest('GET', `posts.json?ref=${encodedBranch}`);
-    const base64 = data.content.replace(/\n/g, '');
-    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-    const json = JSON.parse(new TextDecoder('utf-8').decode(bytes));
-    return { sha: data.sha, content: json };
-  } catch (err) {
-    // 404 means file doesn't exist yet — OK for first publish
-    if (err.message && err.message.includes('404')) {
-      return { sha: null, content: { posts: [] } };
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/posts.json?ref=${encodedBranch}`;
+  const res = await fetch(url, {
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
     }
-    throw err; // re-throw other errors (auth, network, etc.)
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${res.status}`);
   }
+  const data = await res.json();
+  return data.sha;
 }
 
-async function savePostsJson(postsData, message, sha) {
-  const { branch } = getConfig();
+// ---- 写入文章数据 ----
+async function savePostsJson(postsData, message) {
+  const { owner, repo, branch, token } = getConfig();
+  const sha = await getFileSHA();
   const jsonStr = JSON.stringify(postsData, null, 2);
-  const content = btoa(unescape(encodeURIComponent(jsonStr)));
-  const body = { message, content, branch };
+  // 正确编码 UTF-8 为 base64
+  const bytes = new TextEncoder().encode(jsonStr);
+  const base64 = btoa(String.fromCharCode(...bytes));
+  const body = { message, content: base64, branch };
   if (sha) body.sha = sha;
-  await githubRequest('PUT', 'posts.json', body);
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/posts.json`;
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/vnd.github.v3+json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${res.status}`);
+  }
 }
 
 // ---- 加载文章列表 ----
@@ -152,7 +166,7 @@ async function loadPostsList() {
   const el = document.getElementById('posts-list');
   el.innerHTML = '<p class="loading-text">加载中...</p>';
   try {
-    const { content } = await getFileSHA();
+    const content = await fetchPosts();
     const posts = (content.posts || []).sort((a, b) => b.id - a.id);
 
     // 更新分类 datalist
@@ -205,7 +219,7 @@ async function showEditor(id) {
     document.getElementById('editor-title').textContent = '编辑文章';
     document.getElementById('save-btn-text').textContent = '💾 保存修改';
     try {
-      const { content } = await getFileSHA();
+      const content = await fetchPosts();
       const post = content.posts.find(p => p.id === id);
       if (!post) return;
       document.getElementById('edit-id').value       = post.id;
@@ -238,7 +252,7 @@ async function savePost() {
   msgEl.textContent = '';
 
   try {
-    const { sha, content: data } = await getFileSHA();
+    const data = await fetchPosts();
     const posts = data.posts || [];
 
     if (id) {
@@ -259,7 +273,7 @@ async function savePost() {
       });
     }
 
-    await savePostsJson({ posts }, id ? `编辑文章: ${title}` : `发布文章: ${title}`, sha);
+    await savePostsJson({ posts }, id ? `编辑文章: ${title}` : `发布文章: ${title}`);
 
     msgEl.style.color = 'var(--primary)';
     msgEl.textContent = '✅ 发布成功！网站将在 1~2 分钟内更新';
@@ -277,9 +291,9 @@ async function savePost() {
 async function deletePost(id, title) {
   if (!confirm(`确定要删除文章《${title}》吗？\n\n删除后无法恢复！`)) return;
   try {
-    const { sha, content: data } = await getFileSHA();
+    const data = await fetchPosts();
     const posts = (data.posts || []).filter(p => p.id !== id);
-    await savePostsJson({ posts }, `删除文章: ${title}`, sha);
+    await savePostsJson({ posts }, `删除文章: ${title}`);
     loadPostsList();
   } catch (err) {
     alert('删除失败：' + err.message);
