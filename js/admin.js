@@ -103,14 +103,19 @@ function showTab(name, btn) {
 }
 
 // ---- 读取文章数据 ----
-// 用相对路径，不依赖任何配置，永远指向同目录下的 posts.json
 async function fetchPosts() {
   const res = await fetch(`posts.json?t=${Date.now()}`);
+  const text = await res.text();
   if (!res.ok) {
     if (res.status === 404) return { posts: [] };
-    throw new Error(`读取文章失败（HTTP ${res.status}），请稍后重试`);
+    throw new Error(`HTTP ${res.status}：${text.slice(0, 80)}`);
   }
-  return res.json();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    // 显示实际收到的内容前80个字符，帮助诊断问题
+    throw new Error(`收到内容：${text.slice(0, 80)}`);
+  }
 }
 
 // ---- 获取文件 SHA（写入时必须）----
