@@ -102,11 +102,11 @@ function showTab(name, btn) {
   if (name === 'settings') loadConfigToSettings();
 }
 
-// ---- 读取文章数据（直接从公开 URL 获取，无需解码）----
+// ---- 读取文章数据（从博客自身域名读取，无跨域问题）----
 async function fetchPosts() {
-  const { owner, repo, branch } = getConfig();
-  // 使用 raw 内容 URL，直接返回 JSON，无需 base64 解码
-  const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/posts.json?t=${Date.now()}`;
+  const { owner, repo } = getConfig();
+  // 直接从 GitHub Pages 读取，稳定、无需认证、无跨域
+  const url = `https://${owner}.github.io/${repo}/posts.json?t=${Date.now()}`;
   const res = await fetch(url);
   if (!res.ok) {
     if (res.status === 404) return { posts: [] };
