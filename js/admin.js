@@ -93,12 +93,13 @@ function getConfig() {
 
 // ---- Tab 切换 ----
 function showTab(name, btn) {
-  ['posts', 'editor', 'settings'].forEach(t => {
+  ['posts', 'editor', 'about', 'settings'].forEach(t => {
     document.getElementById('tab-' + t).style.display = (t === name) ? '' : 'none';
   });
   document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  if (name === 'posts') loadPostsList();
+  if (name === 'posts')    loadPostsList();
+  if (name === 'about')    loadAboutEditor();
   if (name === 'settings') loadConfigToSettings();
 }
 
@@ -324,6 +325,51 @@ function previewPost() {
 
 function closePreview() {
   document.getElementById('preview-modal').style.display = 'none';
+}
+
+// ---- 关于我 ----
+async function loadAboutEditor() {
+  try {
+    const data = await fetchPosts();
+    const a = data.about || {};
+    document.getElementById('about-avatar').value   = a.avatar   || '😊';
+    document.getElementById('about-name').value     = a.name     || '';
+    document.getElementById('about-tagline').value  = a.tagline  || '';
+    document.getElementById('about-bio').value      = a.bio      || '';
+    document.getElementById('about-hobbies').value  = (a.hobbies || []).join('\n');
+    document.getElementById('about-blogname').value = a.blogName || '';
+    document.getElementById('about-subtitle').value = a.blogSubtitle || '';
+  } catch (err) {
+    document.getElementById('about-msg').textContent = '加载失败：' + err.message;
+    document.getElementById('about-msg').style.color = '#e74c3c';
+  }
+}
+
+async function saveAbout() {
+  const btnEl = document.getElementById('about-btn-text');
+  const msgEl = document.getElementById('about-msg');
+  btnEl.textContent = '发布中...';
+  msgEl.textContent = '';
+  try {
+    const data = await fetchPosts();
+    data.about = {
+      avatar:       document.getElementById('about-avatar').value.trim()  || '😊',
+      name:         document.getElementById('about-name').value.trim()     || '你好，我是博主',
+      tagline:      document.getElementById('about-tagline').value.trim()  || '',
+      bio:          document.getElementById('about-bio').value.trim()      || '',
+      hobbies:      document.getElementById('about-hobbies').value.split('\n').map(s => s.trim()).filter(Boolean),
+      blogName:     document.getElementById('about-blogname').value.trim() || '我的博客',
+      blogSubtitle: document.getElementById('about-subtitle').value.trim() || '',
+    };
+    await savePostsJson(data, '更新关于我页面');
+    msgEl.style.color = 'var(--primary)';
+    msgEl.textContent = '✅ 保存成功！页面将在 1~2 分钟内更新';
+    btnEl.textContent = '🚀 保存并发布';
+  } catch (err) {
+    btnEl.textContent = '🚀 保存并发布';
+    msgEl.style.color = '#e74c3c';
+    msgEl.textContent = '❌ 保存失败：' + err.message;
+  }
 }
 
 // ---- 设置 ----

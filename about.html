@@ -8,12 +8,9 @@
 </head>
 <body>
 
-  <!-- 顶部导航栏 -->
   <header class="header">
     <div class="container">
-      <div class="logo">
-        <a href="index.html">✍️ 我的博客</a>
-      </div>
+      <div class="logo"><a href="index.html">✍️ 我的博客</a></div>
       <nav class="nav">
         <a href="index.html">首页</a>
         <a href="about.html" class="active">关于我</a>
@@ -22,92 +19,22 @@
     </div>
   </header>
 
-  <!-- 关于页面英雄区 -->
   <section class="hero">
     <div class="container">
       <h1>关于我</h1>
-      <p>一个普通人，喜欢记录生活、分享想法</p>
+      <p id="hero-subtitle">一个普通人，喜欢记录生活、分享想法</p>
     </div>
   </section>
 
-  <!-- 关于页面内容 -->
-  <div class="about-page">
-
-    <div class="about-card">
-      <div class="about-avatar">😊</div>
-      <h1>你好，我是博主</h1>
-      <p class="tagline">✍️ 记录者 · 思考者 · 生活爱好者</p>
-
-      <div class="bio">
-        <p>
-          欢迎来到我的博客！这里是我记录日常生活、分享阅读感悟、
-          留下旅行足迹的小小天地。
-        </p>
-        <p>
-          我是一个普通人，没有什么特别了不起的履历，
-          但我相信每个普通人的生活里，都有值得被记录下来的东西。
-          那些平凡的日子、偶尔的感悟、看过的书、去过的地方——
-          这些都是我的财富。
-        </p>
-        <p>
-          开始写博客，是因为我想留住时间，想和有缘看到这里的朋友分享，
-          也想和多年后的自己对话。
-        </p>
-        <p>
-          如果你也喜欢平静地记录生活，欢迎你常来逛逛。
-          有什么想说的，也可以在文章下面留言，我很乐意聊天 😊
-        </p>
-      </div>
-
-      <h3 style="font-size:1rem; margin-bottom:14px; color: var(--text);">我喜欢的事情</h3>
-      <div class="skills">
-        <span class="skill-tag">📚 读书</span>
-        <span class="skill-tag">✍️ 写作</span>
-        <span class="skill-tag">🌿 爬山</span>
-        <span class="skill-tag">🎵 听音乐</span>
-        <span class="skill-tag">🍳 做饭</span>
-        <span class="skill-tag">🎬 看电影</span>
-        <span class="skill-tag">☕ 喝咖啡</span>
-        <span class="skill-tag">🌙 散步</span>
-      </div>
+  <div class="about-page" id="about-content">
+    <div class="about-card" style="text-align:center;">
+      <p style="color:var(--text-muted)">加载中...</p>
     </div>
-
-    <!-- 博客统计 -->
-    <div class="about-card" style="margin-top: 24px; text-align: left;">
-      <h2 style="font-size:1.2rem; margin-bottom:20px; border-bottom: 2px solid var(--primary); padding-bottom:10px; display:inline-block;">📊 博客数据</h2>
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align:center;">
-        <div>
-          <div style="font-size:2rem; font-weight:700; color:var(--primary);">3</div>
-          <div style="font-size:0.9rem; color:var(--text-muted);">篇文章</div>
-        </div>
-        <div>
-          <div style="font-size:2rem; font-weight:700; color:var(--primary);">3</div>
-          <div style="font-size:0.9rem; color:var(--text-muted);">个分类</div>
-        </div>
-        <div>
-          <div style="font-size:2rem; font-weight:700; color:var(--primary);">2026</div>
-          <div style="font-size:0.9rem; color:var(--text-muted);">年创建</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 联系方式 -->
-    <div class="about-card" style="margin-top: 24px; text-align: center;">
-      <h2 style="font-size:1.2rem; margin-bottom:16px;">📬 联系我</h2>
-      <p style="color: var(--text-light); font-size:0.95rem;">
-        如果你想和我交流，欢迎在文章下面留言，我会认真回复每一条评论。
-      </p>
-      <a href="index.html" class="btn-outline" style="margin-top:16px; display:inline-block;">
-        去看看文章 →
-      </a>
-    </div>
-
   </div>
 
-  <!-- 页脚 -->
   <footer class="footer">
     <div class="container">
-      <p>© 2026 我的博客 · 用心记录每一天</p>
+      <p id="footer-name">© 2026 我的博客 · 用心记录每一天</p>
       <p class="footer-links">
         <a href="index.html">首页</a> ·
         <a href="about.html">关于</a>
@@ -116,5 +43,70 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script>
+    fetch('posts.json?t=' + Date.now())
+      .then(r => r.json())
+      .then(data => {
+        const a = data.about || {};
+        const avatar   = a.avatar   || '😊';
+        const name     = a.name     || '你好，我是博主';
+        const tagline  = a.tagline  || '记录者 · 思考者 · 生活爱好者';
+        const bio      = a.bio      || '';
+        const hobbies  = a.hobbies  || [];
+        const blogName = a.blogName || '我的博客';
+
+        document.title = '关于我 - ' + blogName;
+        if (a.blogSubtitle) document.getElementById('hero-subtitle').textContent = a.blogSubtitle.slice(0,30) + '...';
+        document.getElementById('footer-name').textContent = '© 2026 ' + blogName + ' · 用心记录每一天';
+
+        const bioHtml = bio.split('\n\n').filter(p => p.trim())
+          .map(p => `<p>${p.trim()}</p>`).join('');
+
+        const hobbiesHtml = hobbies.length
+          ? `<h3 style="font-size:1rem;margin-bottom:14px;color:var(--text);">我喜欢的事情</h3>
+             <div class="skills">${hobbies.map(h => `<span class="skill-tag">${h}</span>`).join('')}</div>`
+          : '';
+
+        document.getElementById('about-content').innerHTML = `
+          <div class="about-card">
+            <div class="about-avatar">${avatar}</div>
+            <h1>${name}</h1>
+            <p class="tagline">✍️ ${tagline}</p>
+            <div class="bio">${bioHtml}</div>
+            ${hobbiesHtml}
+          </div>
+          <div class="about-card" style="margin-top:24px;">
+            <h2 style="font-size:1.2rem;margin-bottom:20px;border-bottom:2px solid var(--primary);padding-bottom:10px;display:inline-block;">📊 博客数据</h2>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;text-align:center;">
+              <div>
+                <div style="font-size:2rem;font-weight:700;color:var(--primary);">${(data.posts||[]).length}</div>
+                <div style="font-size:0.9rem;color:var(--text-muted);">篇文章</div>
+              </div>
+              <div>
+                <div style="font-size:2rem;font-weight:700;color:var(--primary);">${new Set((data.posts||[]).map(p=>p.category)).size}</div>
+                <div style="font-size:0.9rem;color:var(--text-muted);">个分类</div>
+              </div>
+              <div>
+                <div style="font-size:2rem;font-weight:700;color:var(--primary);">2026</div>
+                <div style="font-size:0.9rem;color:var(--text-muted);">年创建</div>
+              </div>
+            </div>
+          </div>
+          <div class="about-card" style="margin-top:24px;text-align:center;">
+            <h2 style="font-size:1.2rem;margin-bottom:16px;">📬 联系我</h2>
+            <p style="color:var(--text-light);font-size:0.95rem;">如果你想和我交流，欢迎在文章下面留言，我会认真回复每一条评论。</p>
+            <a href="index.html" class="btn-outline" style="margin-top:16px;display:inline-block;">去看看文章 →</a>
+          </div>
+        `;
+      })
+      .catch(() => {
+        document.getElementById('about-content').innerHTML = `
+          <div class="about-card" style="text-align:center;">
+            <div class="about-avatar">😊</div>
+            <h1>你好，我是博主</h1>
+            <p class="tagline">✍️ 记录者 · 思考者 · 生活爱好者</p>
+          </div>`;
+      });
+  </script>
 </body>
 </html>

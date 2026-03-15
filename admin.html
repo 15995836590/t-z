@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>博客管理后台</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <link rel="stylesheet" href="css/style.css?v=8" />
-  <link rel="stylesheet" href="css/admin.css?v=8" />
+  <link rel="stylesheet" href="css/style.css?v=9" />
+  <link rel="stylesheet" href="css/admin.css?v=9" />
 </head>
 <body>
 
@@ -64,6 +64,7 @@
         <span class="admin-logo">✍️ 博客后台</span>
         <div class="admin-nav">
           <button class="admin-tab active" onclick="showTab('posts', this)">文章管理</button>
+          <button class="admin-tab" onclick="showTab('about', this)">关于我</button>
           <button class="admin-tab" onclick="showTab('settings', this)">设置</button>
           <button class="admin-logout" onclick="doLogout()">退出</button>
         </div>
@@ -136,6 +137,47 @@
       </div>
     </div>
 
+    <!-- 关于我编辑 -->
+    <div id="tab-about" class="admin-content" style="display:none">
+      <h2>编辑「关于我」页面</h2>
+      <div class="editor-form" style="margin-top:20px;">
+
+        <label class="field-label">头像（用一个 Emoji 表情代替）</label>
+        <input type="text" id="about-avatar" placeholder="例如：😊 🙋 👩 👨" maxlength="4" />
+
+        <label class="field-label">你的称呼 / 标题</label>
+        <input type="text" id="about-name" placeholder="例如：你好，我是小明" />
+
+        <label class="field-label">一句话介绍</label>
+        <input type="text" id="about-tagline" placeholder="例如：记录者 · 思考者 · 生活爱好者" />
+
+        <label class="field-label">
+          个人简介
+          <span class="field-hint">段落之间空一行</span>
+        </label>
+        <textarea id="about-bio" rows="8" placeholder="写几段话介绍一下自己..."></textarea>
+
+        <label class="field-label">
+          爱好标签
+          <span class="field-hint">每行一个，前面可以加 Emoji</span>
+        </label>
+        <textarea id="about-hobbies" rows="6" placeholder="📚 读书&#10;✍️ 写作&#10;🎵 听音乐&#10;🌿 爬山"></textarea>
+
+        <label class="field-label">博客名称</label>
+        <input type="text" id="about-blogname" placeholder="例如：我的博客" />
+
+        <label class="field-label">博客副标题</label>
+        <input type="text" id="about-subtitle" placeholder="例如：记录生活点滴，分享所思所想" />
+
+        <div class="editor-actions">
+          <button class="btn-primary" onclick="saveAbout()">
+            <span id="about-btn-text">🚀 保存并发布</span>
+          </button>
+        </div>
+        <p id="about-msg" class="save-msg"></p>
+      </div>
+    </div>
+
     <!-- 设置 -->
     <div id="tab-settings" class="admin-content" style="display:none">
       <h2>设置</h2>
@@ -185,6 +227,6 @@
     </div>
   </div>
 
-  <script src="js/admin.js?v=8"></script>
+  <script src="js/admin.js?v=9"></script>
 </body>
 </html>
