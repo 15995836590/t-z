@@ -33,6 +33,7 @@ function searchPosts() {
     { title: '我为什么开始写博客？', url: 'post1.html', tags: ['生活随笔', '写作', '博客'] },
     { title: '《活着》读后感：在苦难中寻找意义', url: 'post2.html', tags: ['读书笔记', '余华', '活着'] },
     { title: '周末短途游：去了一个让人心旷神怡的地方', url: 'post3.html', tags: ['旅行游记', '周末', '短途游'] },
+    { title: 'Reddit热帖解析：5条美股&AI爆款帖子改写成X平台风格', url: 'post4.html', tags: ['投资分析', '美股', 'AI', 'Reddit', 'X平台'] },
   ];
 
   const results = posts.filter(p =>
