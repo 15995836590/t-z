@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NotebookLM 音频 - 我的博客</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .nlm-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 8px;
+    }
+    .nlm-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      transition: box-shadow var(--transition), transform var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .nlm-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+    .nlm-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .nlm-icon {
+      font-size: 2rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .nlm-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .nlm-date {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .nlm-desc {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.7;
+      flex: 1;
+    }
+    .nlm-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .nlm-tag {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 20px;
+    }
+    .nlm-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      background: var(--primary);
+      color: white;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: opacity var(--transition);
+      align-self: flex-start;
+    }
+    .nlm-link:hover { opacity: 0.85; color: white; }
+    .nlm-empty {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 60px 20px;
+      font-size: 1rem;
+    }
+    .nlm-empty .nlm-empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    @media (max-width: 600px) {
+      .nlm-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="container">
+      <div class="logo"><a href="index.html">✍️ 我的博客</a></div>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="notebooklm.html" class="active">NotebookLM</a>
+        <a href="about.html">关于我</a>
+      </nav>
+      <button class="theme-toggle" id="themeToggle" title="切换深色/浅色模式">🌙</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>🎙️ NotebookLM 音频</h1>
+      <p>用 AI 生成的播客式音频概述，帮你快速了解各类主题</p>
+    </div>
+  </section>
+
+  <main class="main">
+    <div class="container" style="padding-top:40px; padding-bottom:60px;">
+      <div id="nlm-container">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 我的博客 · 用心记录每一天</p>
+      <p class="footer-links">
+        <a href="index.html">首页</a> ·
+        <a href="notebooklm.html">NotebookLM</a> ·
+        <a href="about.html">关于</a> ·
+        <a href="admin.html" style="color:var(--text-muted); font-size:0.8rem;">管理</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    fetch('posts.json?t=' + Date.now())
+      .then(r => r.json())
+      .then(data => renderNLM(data.notebooklm || []))
+      .catch(() => renderNLM([]));
+
+    function renderNLM(items) {
+      const container = document.getElementById('nlm-container');
+      if (!items.length) {
+        container.innerHTML = `
+          <div class="nlm-empty">
+            <div class="nlm-empty-icon">🎙️</div>
+            <p>还没有 NotebookLM 音频，敬请期待！</p>
+          </div>`;
+        return;
+      }
+      const sorted = [...items].sort((a, b) => b.id - a.id);
+      container.innerHTML = `<div class="nlm-grid">${sorted.map(item => `
+        <div class="nlm-card">
+          <div class="nlm-card-header">
+            <div class="nlm-icon">🎙️</div>
+            <div>
+              <div class="nlm-title">${esc(item.title)}</div>
+              <div class="nlm-date">📅 ${formatDate(item.date)}</div>
+            </div>
+          </div>
+          ${item.description ? `<p class="nlm-desc">${esc(item.description)}</p>` : ''}
+          ${item.tags && item.tags.length ? `
+            <div class="nlm-tags">
+              ${item.tags.map(t => `<span class="nlm-tag">${esc(t)}</span>`).join('')}
+            </div>` : ''}
+          ${item.url ? `<a href="${esc(item.url)}" target="_blank" rel="noopener" class="nlm-link">▶ 收听音频</a>` : ''}
+        </div>
+      `).join('')}</div>`;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-');
+      return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

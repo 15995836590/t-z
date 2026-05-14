@@ -93,14 +93,15 @@ function getConfig() {
 
 // ---- Tab 切换 ----
 function showTab(name, btn) {
-  ['posts', 'editor', 'about', 'settings'].forEach(t => {
+  ['posts', 'editor', 'notebooklm', 'nlm-editor', 'about', 'settings'].forEach(t => {
     document.getElementById('tab-' + t).style.display = (t === name) ? '' : 'none';
   });
   document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  if (name === 'posts')    loadPostsList();
-  if (name === 'about')    loadAboutEditor();
-  if (name === 'settings') loadConfigToSettings();
+  if (name === 'posts')       loadPostsList();
+  if (name === 'notebooklm')  loadNLMList();
+  if (name === 'about')       loadAboutEditor();
+  if (name === 'settings')    loadConfigToSettings();
 }
 
 // ---- 读取文章数据 ----
@@ -415,6 +416,129 @@ function clearAll() {
   if (!confirm('确定清除所有设置？需要重新配置才能使用后台。')) return;
   Object.values(STORAGE).forEach(k => localStorage.removeItem(k));
   location.reload();
+}
+
+// ---- NotebookLM 列表 ----
+async function loadNLMList() {
+  const el = document.getElementById('nlm-list');
+  el.innerHTML = '<p class="loading-text">加载中...</p>';
+  try {
+    const data = await fetchPosts();
+    const items = (data.notebooklm || []).sort((a, b) => b.id - a.id);
+    if (!items.length) {
+      el.innerHTML = '<p class="empty-tip">还没有 NotebookLM 音频，点"添加音频"开始吧！</p>';
+      return;
+    }
+    el.innerHTML = items.map(item => `
+      <div class="admin-post-item">
+        <div class="admin-post-info">
+          <span class="admin-post-tag">${item.tags && item.tags.length ? item.tags[0] : 'NotebookLM'}</span>
+          <h4 class="admin-post-title">${item.title}</h4>
+          <span class="admin-post-date">${formatDate(item.date)}</span>
+        </div>
+        <div class="admin-post-actions">
+          <button class="btn-edit" onclick="showNLMEditor('${item.id}')">编辑</button>
+          <button class="btn-del" onclick="deleteNLMItem('${item.id}', '${item.title.replace(/'/g,"\\'")}')">删除</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    el.innerHTML = `<p class="err-msg">加载失败：${err.message}</p>`;
+  }
+}
+
+async function showNLMEditor(id) {
+  document.getElementById('tab-notebooklm').style.display = 'none';
+  document.getElementById('tab-nlm-editor').style.display = '';
+  document.getElementById('nlm-save-msg').textContent = '';
+
+  if (!id) {
+    document.getElementById('nlm-editor-title').textContent = '添加音频';
+    document.getElementById('nlm-edit-id').value    = '';
+    document.getElementById('nlm-edit-title').value = '';
+    document.getElementById('nlm-edit-url').value   = '';
+    document.getElementById('nlm-edit-desc').value  = '';
+    document.getElementById('nlm-edit-tags').value  = '';
+    document.getElementById('nlm-edit-date').value  = new Date().toISOString().slice(0, 10);
+    document.getElementById('nlm-save-btn-text').textContent = '💾 保存';
+  } else {
+    document.getElementById('nlm-editor-title').textContent = '编辑音频';
+    try {
+      const data = await fetchPosts();
+      const item = (data.notebooklm || []).find(x => x.id === id);
+      if (!item) return;
+      document.getElementById('nlm-edit-id').value    = item.id;
+      document.getElementById('nlm-edit-title').value = item.title;
+      document.getElementById('nlm-edit-url').value   = item.url || '';
+      document.getElementById('nlm-edit-desc').value  = item.description || '';
+      document.getElementById('nlm-edit-tags').value  = (item.tags || []).join(', ');
+      document.getElementById('nlm-edit-date').value  = item.date || '';
+      document.getElementById('nlm-save-btn-text').textContent = '💾 保存修改';
+    } catch (err) {
+      alert('加载失败：' + err.message);
+    }
+  }
+}
+
+async function saveNLMItem() {
+  const id    = document.getElementById('nlm-edit-id').value;
+  const title = document.getElementById('nlm-edit-title').value.trim();
+  const url   = document.getElementById('nlm-edit-url').value.trim();
+  const desc  = document.getElementById('nlm-edit-desc').value.trim();
+  const tags  = document.getElementById('nlm-edit-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const date  = document.getElementById('nlm-edit-date').value;
+  const msgEl = document.getElementById('nlm-save-msg');
+  const btnEl = document.getElementById('nlm-save-btn-text');
+
+  if (!title) { msgEl.textContent = '请填写标题'; msgEl.style.color = '#e74c3c'; return; }
+
+  btnEl.textContent = '保存中...';
+  msgEl.textContent = '';
+
+  try {
+    const data = await fetchPosts();
+    const items = data.notebooklm || [];
+
+    if (id) {
+      const idx = items.findIndex(x => x.id === id);
+      if (idx !== -1) {
+        items[idx] = { ...items[idx], title, url, description: desc, tags, date };
+      }
+    } else {
+      items.push({
+        id: Date.now().toString(),
+        title,
+        url,
+        description: desc,
+        tags,
+        date: date || new Date().toISOString().slice(0, 10),
+      });
+    }
+
+    data.notebooklm = items;
+    await savePostsJson(data, id ? `编辑 NotebookLM: ${title}` : `新增 NotebookLM: ${title}`);
+
+    msgEl.style.color = 'var(--primary)';
+    msgEl.textContent = '✅ 保存成功！';
+    btnEl.textContent = '💾 保存';
+    setTimeout(() => showTab('notebooklm', null), 1500);
+  } catch (err) {
+    btnEl.textContent = '💾 保存';
+    msgEl.style.color = '#e74c3c';
+    msgEl.textContent = '❌ 保存失败：' + err.message;
+  }
+}
+
+async function deleteNLMItem(id, title) {
+  if (!confirm(`确定要删除《${title}》吗？`)) return;
+  try {
+    const data = await fetchPosts();
+    data.notebooklm = (data.notebooklm || []).filter(x => x.id !== id);
+    await savePostsJson(data, `删除 NotebookLM: ${title}`);
+    loadNLMList();
+  } catch (err) {
+    alert('删除失败：' + err.message);
+  }
 }
 
 // ---- 工具函数 ----

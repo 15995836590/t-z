@@ -64,6 +64,7 @@
         <span class="admin-logo">✍️ 博客后台</span>
         <div class="admin-nav">
           <button class="admin-tab active" onclick="showTab('posts', this)">文章管理</button>
+          <button class="admin-tab" onclick="showTab('notebooklm', this)">NotebookLM</button>
           <button class="admin-tab" onclick="showTab('about', this)">关于我</button>
           <button class="admin-tab" onclick="showTab('settings', this)">设置</button>
           <button class="admin-logout" onclick="doLogout()">退出</button>
@@ -134,6 +135,56 @@
           </button>
         </div>
         <p id="save-msg" class="save-msg"></p>
+      </div>
+    </div>
+
+    <!-- NotebookLM 管理 -->
+    <div id="tab-notebooklm" class="admin-content" style="display:none">
+      <div class="admin-toolbar">
+        <h2>NotebookLM 列表</h2>
+        <button class="btn-primary" onclick="showNLMEditor(null)">＋ 添加音频</button>
+      </div>
+      <div id="nlm-list" class="admin-posts-list">
+        <p class="loading-text">加载中...</p>
+      </div>
+    </div>
+
+    <!-- NotebookLM 编辑器 -->
+    <div id="tab-nlm-editor" class="admin-content" style="display:none">
+      <div class="admin-toolbar">
+        <button class="btn-back" onclick="showTab('notebooklm', null)">← 返回列表</button>
+        <h2 id="nlm-editor-title">添加音频</h2>
+      </div>
+
+      <div class="editor-form">
+        <input type="hidden" id="nlm-edit-id" />
+
+        <label class="field-label">标题 *</label>
+        <input type="text" id="nlm-edit-title" placeholder="输入音频标题" />
+
+        <label class="field-label">音频链接（NotebookLM 分享链接）</label>
+        <input type="url" id="nlm-edit-url" placeholder="https://notebooklm.google.com/notebook/..." />
+
+        <label class="field-label">简介</label>
+        <textarea id="nlm-edit-desc" rows="3" placeholder="简要描述这个音频的内容..."></textarea>
+
+        <div class="editor-row">
+          <div>
+            <label class="field-label">标签</label>
+            <input type="text" id="nlm-edit-tags" placeholder="用英文逗号分隔，例如：读书,科技" />
+          </div>
+          <div>
+            <label class="field-label">日期</label>
+            <input type="date" id="nlm-edit-date" />
+          </div>
+        </div>
+
+        <div class="editor-actions">
+          <button class="btn-primary" onclick="saveNLMItem()">
+            <span id="nlm-save-btn-text">💾 保存</span>
+          </button>
+        </div>
+        <p id="nlm-save-msg" class="save-msg"></p>
       </div>
     </div>
 
