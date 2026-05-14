@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>所有文章 - 我的博客</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="header">
+    <div class="container">
+      <div class="logo"><a href="index.html">✍️ 我的博客</a></div>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="list.html" class="active">所有文章</a>
+        <a href="about.html">关于我</a>
+      </nav>
+      <button class="theme-toggle" id="themeToggle" title="切换深色/浅色模式">🌙</button>
+    </div>
+  </header>
+
+  <div class="nlm-page">
+    <div class="nlm-header">
+      <h1 class="nlm-title">所有文章</h1>
+      <div class="nlm-search-wrap">
+        <input type="text" id="nlmSearch" class="nlm-search" placeholder="🔍 搜索文章..." />
+      </div>
+    </div>
+
+    <div class="nlm-filter" id="nlm-filter">
+      <button class="nlm-chip active" data-cat="">全部</button>
+    </div>
+
+    <div class="nlm-empty" id="nlm-empty" style="display:none">
+      <div class="nlm-empty-icon">📭</div>
+      <p>没有找到匹配的文章</p>
+    </div>
+
+    <div class="nlm-grid" id="nlm-grid">
+      <div class="nlm-loading">加载中...</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 我的博客 · 用心记录每一天</p>
+      <p class="footer-links">
+        <a href="index.html">首页</a> ·
+        <a href="list.html">所有文章</a> ·
+        <a href="about.html">关于</a> ·
+        <a href="admin.html" style="color:var(--text-muted); font-size:0.8rem;">管理</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    const CATEGORY_ICONS = {
+      '生活随笔': '🌱', '读书笔记': '📚', '旅行游记': '✈️',
+      '技术': '💻', '思考': '💡', '美食': '🍜', '电影': '🎬',
+      '音乐': '🎵', '摄影': '📷', '未分类': '📝',
+    };
+
+    function getCatIcon(cat) {
+      return CATEGORY_ICONS[cat] || '📝';
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-');
+      return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+    }
+
+    let allPosts = [];
+    let activeCategory = '';
+    let searchQuery = '';
+
+    fetch('posts.json?t=' + Date.now())
+      .then(r => r.json())
+      .then(data => {
+        allPosts = (data.posts || []).sort((a, b) => b.id - a.id);
+        buildFilters(allPosts);
+        renderGrid(allPosts);
+      })
+      .catch(() => {
+        document.getElementById('nlm-grid').innerHTML =
+          '<p style="color:var(--text-muted);text-align:center;padding:40px 0">暂无文章</p>';
+      });
+
+    function buildFilters(posts) {
+      const cats = [...new Set(posts.map(p => p.category).filter(Boolean))];
+      const filterEl = document.getElementById('nlm-filter');
+      cats.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'nlm-chip';
+        btn.dataset.cat = cat;
+        btn.textContent = `${getCatIcon(cat)} ${cat}`;
+        btn.addEventListener('click', () => setCategory(cat, btn));
+        filterEl.appendChild(btn);
+      });
+      filterEl.querySelector('[data-cat=""]').addEventListener('click', e => setCategory('', e.currentTarget));
+    }
+
+    function setCategory(cat, btn) {
+      activeCategory = cat;
+      document.querySelectorAll('.nlm-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      let filtered = allPosts;
+      if (activeCategory) filtered = filtered.filter(p => p.category === activeCategory);
+      if (searchQuery)    filtered = filtered.filter(p =>
+        p.title.includes(searchQuery) || (p.excerpt || '').includes(searchQuery) ||
+        (p.category || '').includes(searchQuery)
+      );
+      renderGrid(filtered);
+    }
+
+    function renderGrid(posts) {
+      const grid = document.getElementById('nlm-grid');
+      const empty = document.getElementById('nlm-empty');
+      if (!posts.length) {
+        grid.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+      grid.innerHTML = posts.map((p, i) => `
+        <a href="post.html?id=${p.id}" class="nlm-card" style="animation-delay:${i * 0.05}s">
+          <div class="nlm-card-icon">${getCatIcon(p.category)}</div>
+          <div class="nlm-card-body">
+            <div class="nlm-card-tag">${p.category || '未分类'}</div>
+            <h3 class="nlm-card-title">${p.title}</h3>
+            <p class="nlm-card-excerpt">${p.excerpt || ''}</p>
+          </div>
+          <div class="nlm-card-footer">
+            <span class="nlm-card-date">📅 ${formatDate(p.date)}</span>
+            <span class="nlm-card-arrow">→</span>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    document.getElementById('nlmSearch').addEventListener('input', e => {
+      searchQuery = e.target.value.trim();
+      applyFilters();
+    });
+  </script>
+</body>
+</html>
